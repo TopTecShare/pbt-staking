@@ -69,3 +69,64 @@ Approximate time calculation is as follows:
 5. At any time in the future, the user can call the `withdraw` function with same arguments as above to withdraw their tokens.
 6. They can also call the `deposit` function with amount=0, to only claim their rewards, and not deposit/withdraw any principal tokens.
 3. Owner(you) can retire a pool by calling the `set` function with the pool's pid, and `_allocPoint` = 0.
+
+
+## Numerical Example
+
+```
+10 allocPoints
+pool's  = 10
+total = 10
+
+10 allocPoints
+pool's  = 10
+total = 20
+
+10 allocPoints (16%)
+pool's  = 10
+total = 30
+
+30 allocPoints (50%)
+pool's  = 30
+total = 60
+```
+
+````
+total : 100 PBT per block
+1 pool gets 25 PBT per block
+total of 4 pools (equal)
+
+We're calculating for 100 blocks
+
+Pool gets 2500 PBT in total till now
+
+Pool has staked 500 LP tokens in total
+UserA has staked 50 LP tokens
+
+accPbtPerShare = 0
+
+uint256 multiplier = block.number.sub(pool.lastRewardBlock);
+           = number of blocks since last reward block
+
+uint256 pbtReward = multiplier.mul(pbtPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+          = 100 * 100 * 10 / 40
+          = 2500
+          = total PBT rewards for 'this' pool
+
+pool.accPbtPerShare = pool.accPbtPerShare.add(pbtReward.mul(1e12).div(lpSupply));
+          = 0 + (2500/500)
+          = 5
+          = PBT tokens per LP token staked here
+
+uint256 pending = user.amount.mul(pool.accPbtPerShare).div(1e12).sub(user.rewardDebt);
+        = 50 * 5 - 0
+        = 250 PBT
+
+user.amount = user.amount.sub(_amount);
+      = 50 - 25
+      = 25
+
+user.rewardDebt = user.amount.mul(pool.accPbtPerShare).div(1e12);
+        = 25 * (5)
+        = 125
+```
